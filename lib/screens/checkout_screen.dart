@@ -16,7 +16,6 @@ import '../models/paquete.dart';
 import '../models/destino.dart';
 import '../models/cliente.dart';
 import '../models/reserva.dart';
-import '../models/pago.dart';
 import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -62,12 +61,12 @@ Widget _dashed() => Padding(
       return Row(
         children: List.generate(
           count,
-          (_) => Padding(
-            padding: const EdgeInsets.only(right: gap),
+          (_) => const Padding(
+            padding: EdgeInsets.only(right: gap),
             child: SizedBox(
               width: dash,
               height: h,
-              child: const DecoratedBox(
+              child: DecoratedBox(
                 decoration: BoxDecoration(color: Color(0xFFAAAAAA)),
               ),
             ),
@@ -270,9 +269,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() {
       int nuevo = (numeroPasajeros + delta).clamp(1, 20);
       if (nuevo > numeroPasajeros) {
-        for (int i = numeroPasajeros; i < nuevo; i++) _agregarPasajero(i);
+        for (int i = numeroPasajeros; i < nuevo; i++) {
+          _agregarPasajero(i);
+        }
       } else {
-        for (int i = numeroPasajeros - 1; i >= nuevo; i--) _removerPasajero(i);
+        for (int i = numeroPasajeros - 1; i >= nuevo; i--) {
+          _removerPasajero(i);
+        }
       }
       numeroPasajeros = nuevo;
     });
@@ -392,8 +395,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       }
-      if (cliente.idCliente == null)
+      if (cliente.idCliente == null) {
         throw Exception('ID de cliente no disponible');
+      }
 
       final fechaFormateada =
           DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now()).toLowerCase();
@@ -543,8 +547,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
       }
-      if (cliente.idCliente == null)
+      if (cliente.idCliente == null) {
         throw Exception('ID de cliente no disponible');
+      }
 
       final fechaFormateada =
           DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now()).toLowerCase();
@@ -1070,28 +1075,71 @@ class PasajeroFormController {
             ),
             const SizedBox(height: 14),
 
-            Stack(
-              alignment: Alignment.centerRight,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                TextFormField(
-                  controller: dniController,
-                  decoration: _dec('DNI / Pasaporte', Icons.badge_outlined),
-                  onEditingComplete: verificarDni,
-                  onTapOutside: (_) => verificarDni(),
-                  textInputAction: TextInputAction.next,
-                ),
-                if (_isVerifying)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 14),
-                    child: SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: _kGreen,
-                      ),
-                    ),
+                Expanded(
+                  child: TextFormField(
+                    controller: dniController,
+                    decoration: _dec('DNI / Pasaporte', Icons.badge_outlined),
+                    onEditingComplete:
+                        verificarDni, // sigue buscando al presionar "siguiente"
+                    textInputAction: TextInputAction.done,
+                    keyboardType: TextInputType.number,
+                    maxLength: 12,
+                    buildCounter:
+                        (
+                          _, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => null,
                   ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 48,
+                  child:
+                      _isVerifying
+                          // ── Buscando: spinner en lugar del botón ──
+                          ? const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                color: _kGreen,
+                              ),
+                            ),
+                          )
+                          // ── Botón buscar ──
+                          : ElevatedButton.icon(
+                            icon: const Icon(Icons.search, size: 16),
+                            label: const Text(
+                              'Buscar',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _kGreen,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              FocusScope.of(context).unfocus();
+                              verificarDni();
+                            },
+                          ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
@@ -1289,9 +1337,9 @@ class _PaymentModalState extends State<PaymentModal>
   void _detectBrand(String num) {
     final clean = num.replaceAll(' ', '');
     setState(() {
-      if (clean.startsWith('4'))
+      if (clean.startsWith('4')) {
         _brand = 'Visa';
-      else if (clean.startsWith('5'))
+      } else if (clean.startsWith('5'))
         _brand = 'Mastercard';
       else if (clean.startsWith('3'))
         _brand = 'American Express';
@@ -1564,20 +1612,25 @@ class _PaymentModalState extends State<PaymentModal>
                                 }
                               },
                               validator: (v) {
-                                if (v == null || v.length != 5)
+                                if (v == null || v.length != 5) {
                                   return 'Formato MM/AA';
+                                }
                                 final p = v.split('/');
                                 final mm = int.tryParse(p[0]);
                                 final yy = int.tryParse(p[1]);
                                 if (mm == null ||
                                     yy == null ||
                                     mm < 1 ||
-                                    mm > 12)
+                                    mm > 12) {
                                   return 'Mes inválido';
+                                }
                                 final exp = DateTime(2000 + yy, mm);
                                 final now = DateTime.now();
-                                if (exp.isBefore(DateTime(now.year, now.month)))
+                                if (exp.isBefore(
+                                  DateTime(now.year, now.month),
+                                )) {
                                   return 'Tarjeta vencida';
+                                }
                                 return null;
                               },
                             ),
@@ -1663,8 +1716,9 @@ class _PaymentModalState extends State<PaymentModal>
                             _cardLoading
                                 ? null
                                 : () async {
-                                  if (!_cardFormKey.currentState!.validate())
+                                  if (!_cardFormKey.currentState!.validate()) {
                                     return;
+                                  }
                                   setState(() => _cardLoading = true);
                                   await widget.onConfirm({
                                     'method': 'tarjeta',
@@ -1674,8 +1728,9 @@ class _PaymentModalState extends State<PaymentModal>
                                     'name': _nameCtrl.text,
                                     'doc': _docCtrl.text,
                                   });
-                                  if (mounted)
+                                  if (mounted) {
                                     setState(() => _cardLoading = false);
+                                  }
                                 },
                         child:
                             _cardLoading
@@ -1745,7 +1800,7 @@ class _PaymentModalState extends State<PaymentModal>
                           height: 70,
                           fit: BoxFit.contain,
                           errorBuilder:
-                              (_, __, ___) => Text(
+                              (_, __, ___) => const Text(
                                 'yape',
                                 style: TextStyle(
                                   fontSize: 34,
@@ -1901,7 +1956,7 @@ class _PaymentModalState extends State<PaymentModal>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.info_outline,
                             size: 14,
                             color: yapePrimary,
@@ -1992,8 +2047,10 @@ class _PaymentModalState extends State<PaymentModal>
                               _yapeLoading
                                   ? null
                                   : () async {
-                                    if (!_yapeFormKey.currentState!.validate())
+                                    if (!_yapeFormKey.currentState!
+                                        .validate()) {
                                       return;
+                                    }
                                     final otp =
                                         _otpCtrls.map((c) => c.text).join();
                                     if (otp.length != 6) {
@@ -2015,8 +2072,9 @@ class _PaymentModalState extends State<PaymentModal>
                                       'celular': _celularCtrl.text,
                                       'codigo': otp,
                                     });
-                                    if (mounted)
+                                    if (mounted) {
                                       setState(() => _yapeLoading = false);
+                                    }
                                   },
                           child:
                               _yapeLoading
@@ -2513,7 +2571,7 @@ class BoletaScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: _kGreenBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _kGreen.withOpacity(0.35)),
+                border: Border.all(color: _kGreen.withValues(alpha: 0.35)),
               ),
               child: const Column(
                 children: [
