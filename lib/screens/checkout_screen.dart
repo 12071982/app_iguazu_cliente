@@ -22,8 +22,13 @@ import '../services/api_service.dart';
 //  CONSTANTES GLOBALES
 // ═══════════════════════════════════════════════════════════════════
 const String verificapeToken = 'vp_live_aada01fa0e4c4fa290b3e042fc612bb8';
-const String verificapeApi =
-    'https://corsproxy.io/?https://api.verificape.com/v2/dni';
+const String _verificapeDirectUrl = 'https://api.verificape.com/v2/dni';
+
+String _verificapeUrl(String dni) {
+  return kIsWeb
+      ? 'https://corsproxy.io/?$_verificapeDirectUrl/$dni'
+      : '$_verificapeDirectUrl/$dni';
+}
 
 Map<String, dynamic> dniCache = {};
 Map<String, Cliente?> clienteCache = {};
@@ -998,7 +1003,7 @@ class PasajeroFormController {
 
     try {
       final response = await http.get(
-        Uri.parse('$verificapeApi/$dni'),
+        Uri.parse(_verificapeUrl(dni)),
         headers: {'Authorization': 'Bearer $verificapeToken'},
       );
       _isVerifying = false;
@@ -1015,14 +1020,17 @@ class PasajeroFormController {
           }
         } else {
           dniCache[dni] = {'success': false};
+          print('Verificape: success=false -> ${response.body}'); // TEMP
         }
       } else {
         dniCache[dni] = {'success': false};
+        print('Verificape: status ${response.statusCode} -> ${response.body}'); // TEMP
       }
-    } catch (_) {
+    } catch (e) {
       _isVerifying = false;
       onVerifying(index, false);
       dniCache[dni] = {'success': false};
+      print('Verificape: excepción -> $e'); // TEMP
     }
   }
 
