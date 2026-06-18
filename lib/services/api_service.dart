@@ -7,7 +7,7 @@ import '../models/reserva.dart';
 import '../models/pago.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://localhost:7047/api';
+  static const String baseUrl = 'https://iguazu.bsite.net/api';
 
   // ════════════════════════════════════════════════
   // PAQUETES

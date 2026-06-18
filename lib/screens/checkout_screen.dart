@@ -29,7 +29,7 @@ const String verificapeApi =
 Map<String, dynamic> dniCache = {};
 Map<String, Cliente?> clienteCache = {};
 
-const String _apiBase = 'https://localhost:7047/api';
+const String _apiBase = 'https://iguazu.bsite.net/api';
 
 // ═══════════════════════════════════════════════════════════════════
 //  PALETA DE COLORES (ticket térmico)
